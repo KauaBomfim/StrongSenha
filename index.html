@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="reset.css">
+    <title>Gerador de senha</title>
+</head>
+<body>
+    <main>
+        <header>
+            <h1>Gerador de senha</h1>
+            <p>Utilize o nosso gerador online para criar uma senha forte e segura.</p>
+        </header>
+
+        <section class="box">
+            <div class="password">
+                <div class="text">
+                    <input type="text" name="password" id="password">
+                </div>
+                <div class="actions">
+                    <button id="copy-1"><img src="copy.svg" alt="copiar a senha" width="40"></button>
+                    <button id="renew"><img src="renew.svg" alt="atualizar senha" width="40"></button>
+                </div>
+            </div>
+            <div class="security-indicator">
+                <div id="security-indicator-bar" class="bar">
+
+                </div>
+            </div>
+        </section>
+
+        <section class="box customize">
+            <h3 class="title">Personalizar</h3>
+            <div class="actions">
+                <div class="password-length">
+                    <p>Tamanho: <span id="password-length-text">16</span></p>
+                    <input type="range" name="pass_length" class="slider" id="pass_length" value="16" min="4" max="64">
+                </div>
+                <div class="config">
+                    <label  class="checkbox-container">
+                        <span class="text">Maiúsculas</span>
+                        <input type="checkbox" class="uppercase-check" id="uppercase-check" checked />
+                        <span class="checkmark"></span>
+                    </label>
+                    <label  class="checkbox-container">
+                        <span class="text">Números</span>
+                        <input type="checkbox" class="numbers-check" id="number-check" checked />
+                        <span class="checkmark"></span>
+                    </label>
+                    <label  class="checkbox-container">
+                        <span class="text">Símbolos</span>
+                        <input type="checkbox" class="symbols-check" id="symbols-check" checked />
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+            </div>
+
+        </section>
+
+        <div class="submit">
+            <button id="copy-2">Copiar Senha</button>
+        </div>
+    </main>
+
+    <script>
+        const inputEl = document.querySelector("#password");
+        const upperCaseCheckEl = document.querySelector("#uppercase-check")
+        const numberCaseCheckEl = document.querySelector("#number-check")
+        const symbolCaseCheckEl = document.querySelector("#symbols-check")
+        const securityIndicatorBar = document.querySelector("#security-indicator-bar")
+        
+        // Define o núemero padrão de senha
+        let passLength = 16
+
+
+        // Função para gerar a senha no input text
+        function generatePassword() {
+            let chars = "abcdefghjkmnpqrstuvwxyz";
+            
+            const upperCaseChars = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+            const numbersChars = "123456789"
+            const symbolsChars = "?!@&*()[]"
+
+            if (upperCaseCheckEl.checked) {
+                chars += upperCaseChars
+            }
+
+            if (numberCaseCheckEl.checked) {  // Condições para adicionar caracteres de acordo com as checkbox
+                chars += numbersChars
+            }
+            
+            if (symbolCaseCheckEl.checked) {
+                chars += symbolsChars   
+            }
+
+            let password = "";
+
+
+            // loop criado para que cada vez que selecionar um caracter com "substring" adicionar mais um caracter de acordo com o "passlength" definido.
+            for (let i = 0; i < passLength; i++) {
+                const randomNumber = Math.floor(Math.random() * chars.length)
+                password += chars.substring(randomNumber, randomNumber + 1)
+            }
+
+            // Adiciona o valor gerado pelo "for" no input
+            inputEl.value = password
+
+            calculateQuality()
+            calculateFonteSize()
+        }
+
+        function calculateQuality() {
+            const percent = Math.round((passLength / 64) * 25 + 
+            (upperCaseCheckEl.checked ? 15 : 0) +
+            (numberCaseCheckEl.checked ? 25 : 0) +
+            (symbolCaseCheckEl.checked ? 35 : 0))
+
+            securityIndicatorBar.style.width = `${percent}%`
+
+            if (percent > 69) {
+                securityIndicatorBar.classList.remove('critical')
+                securityIndicatorBar.classList.remove('warning')
+                securityIndicatorBar.classList.add('safe')
+            } else if (percent > 50) {
+                securityIndicatorBar.classList.remove('safe')
+                securityIndicatorBar.classList.remove('critical')
+                securityIndicatorBar.classList.add('warning')
+            } else {
+                securityIndicatorBar.classList.remove('safe')
+                securityIndicatorBar.classList.remove('warning')
+                securityIndicatorBar.classList.add('critical')
+            }
+
+            if (percent >= 100) {
+                securityIndicatorBar.classList.add('completed')
+            } else {
+                securityIndicatorBar.classList.remove('completed')
+            }
+        }
+
+        function calculateFonteSize() {
+            if (passLength > 45) {
+                inputEl.classList.remove("font-sm")
+                inputEl.classList.remove("font-xs")
+                inputEl.classList.add("font-xxs")
+            } else if (passLength > 32) {
+                inputEl.classList.remove("font-xxs")
+                inputEl.classList.remove("font-sm")
+                inputEl.classList.add("font-xs")
+            } else if (passLength > 22) {
+                inputEl.classList.remove("font-xxs")
+                inputEl.classList.remove("font-xs")
+                inputEl.classList.add("font-sm")
+            } else {
+                inputEl.classList.remove("font-sm")
+                inputEl.classList.remove("font-xs")
+                inputEl.classList.remove("font-xxs")
+            }
+        }
+
+        function copy() {
+            navigator.clipboard.writeText(inputEl.value)
+        }
+
+        // Selecionar o "range" e cria um evento para que a senha seja mudada ao arrastar o range. 
+        const passLengthEl = document.querySelector("#pass_length")
+        passLengthEl.addEventListener("input", function () {
+            passLength = passLengthEl.value
+            document.querySelector('#password-length-text').innerText = passLength // define o id selecionado para mostrar o número de acordo com o range
+            generatePassword()
+        })
+
+        upperCaseCheckEl.addEventListener('click', generatePassword)
+        numberCaseCheckEl.addEventListener('click', generatePassword) // Eventos para click de caracteres de senha
+        symbolCaseCheckEl.addEventListener('click', generatePassword)
+
+        document.querySelector("#copy-1").addEventListener('click', copy)
+        document.querySelector("#copy-2").addEventListener('click', copy) // Evento de copia dos butões
+        document.querySelector("#renew").addEventListener('click', generatePassword)
+        
+        generatePassword()
+    </script>
+</body>
+</html>
